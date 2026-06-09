@@ -5,7 +5,7 @@ module.exports = {
     
 
     async execute(message) {
-        console.log("ROLE MANAGE LOADED");
+        
         if (message.author.bot) return;
 
        const rankRoles = {
@@ -48,7 +48,7 @@ module.exports = {
     }
 }
     const ranks = [
-    { xp: 400, role: rankRoles.lvl_1 },
+    { xp: 0, role: rankRoles.lvl_1 },
     { xp: 1000, role: rankRoles.lvl_2 },
     { xp: 3000, role: rankRoles.lvl_3 },
     { xp: 10000, role: rankRoles.drag },
@@ -63,9 +63,25 @@ module.exports = {
         roleToGive = rank.role;
        
     }
- } console.log("role start");
- await member.roles.add(roleToGive);
-  console.log("role done");
+ } console.log("ROLE START");
+
+console.log("USER ID =", userid);
+
+if(!data[userid]) {
+    console.log("USER NOT FOUND IN JSON");
+    return;
+}
+
+console.log("XP =", xp);
+console.log("ROLE TO GIVE =", roleToGive);
+try {
+    await member.roles.add(roleToGive);
+    console.log("ROLE ADDED");
+}
+catch(err) {
+    console.log("ROLE ERROR:", err.message);
+}
+ 
 }
      
 };
