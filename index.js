@@ -38,6 +38,10 @@ client.on(interactionEvent.name, (...args) => {
 });
 client.once('ready', () => {
     console.log(`Chacha is online!`);
+
+    setInterval(() => {
+        console.log("Checking roles...");
+    }, 60000);
 });
 
 client.on('messageCreate', message => {
