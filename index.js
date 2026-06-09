@@ -16,6 +16,10 @@ const interactionEvent = require('./events/info');
 const joinEvent = require('./events/guildMemberAdd');
 const newinfo = require('./events/nowinfo');
 const leaderboard = require('./events/showLevel');
+const rolemanage= require('./events/roleManage');
+client.on(rolemanage.name, (...args)=>{
+    rolemanage.execute(...args);
+})
 client.on(leaderboard.name, member => {
  leaderboard.execute(member);
 });
