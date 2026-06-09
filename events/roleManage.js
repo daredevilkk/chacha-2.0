@@ -1,10 +1,11 @@
 
-console.log("ROLE MANAGE LOADED");
+
 module.exports = {
     name: 'messageCreate',
     
 
     async execute(message) {
+        console.log("ROLE MANAGE LOADED");
         if (message.author.bot) return;
 
        const rankRoles = {
