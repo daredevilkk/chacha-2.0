@@ -4,7 +4,7 @@ module.exports = {
     name: 'messageCreate',
 
     async execute(message) {
-
+console.log("MESSAGE RECEIVED:", message.content);
         if (message.author.bot) return;
 
         // XP SYSTEM
