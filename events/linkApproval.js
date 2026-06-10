@@ -18,17 +18,15 @@ module.exports = {
     async execute(message) {
 
         if (message.author.bot) return;
+        
+           console.log("MESSAGE RECEIVED:", message.content);
 
         if (!message.content.startsWith('!push ')) return;
-
-        const link = message.content.split(' ')[1];
-
-        if (
-            !link.startsWith('http://') &&
-            !link.startsWith('https://')
-        ) {
-            return message.reply('Invalid link!');
-        }
+const link = message.content.substring(6).trim();
+      if (!link || link.length < 3) {
+    return message.reply('Please provide a valid link or file.');
+}
+console.log("LINK =", link);
 
         const approvalChannel =
             message.guild.channels.cache.get(APPROVAL_CHANNEL_ID);
@@ -39,23 +37,24 @@ module.exports = {
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
-                .setCustomId(`approve_${message.author.id}_${link}`)
-                .setLabel('Approve')
-                .setStyle(ButtonStyle.Success),
+    .setCustomId(`approve_${message.author.id}_${link}`)
+    .setLabel('Approve')
+    .setStyle(ButtonStyle.Success),
 
-            new ButtonBuilder()
-                .setCustomId(`reject_${message.author.id}_${link}`)
-                .setLabel('Reject')
-                .setStyle(ButtonStyle.Danger)
+new ButtonBuilder()
+    .setCustomId(`reject_${message.author.id}_${link}`)
+    .setLabel('Reject')
+    .setStyle(ButtonStyle.Danger)
         );
 
-        await approvalChannel.send({
-            content:
-                `🔗 Link Request\n\n` +
-                `User: ${message.author.username}\n` +
-                `Link: ${link}`,
-            components: [row]
-        });
+       await approvalChannel.send({
+    content:
+        `🔗 Link Request\n\n` +
+        `User: ${message.author.username}\n` +
+        `UserID: ${message.author.id}\n` +
+        `Link: ${link}`,
+    components: [row]
+});
 
         await message.reply('Link submitted for approval.');
     }

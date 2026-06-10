@@ -1,6 +1,13 @@
 require('dotenv').config();
 
-const { Client, GatewayIntentBits } = require('discord.js');
+const {
+    Client,
+    GatewayIntentBits,
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle
+} = require('discord.js');
 
 const client = new Client({
     intents: [
@@ -18,41 +25,179 @@ const LINKS_CHANNEL_ID2 = '1513663658687987864';
 const LINKS_CHANNEL_ID3 = '1513663865412522106';
 const LINKS_CHANNEL_ID4 = '1513663926192050346';
 const messageEvent = require('./events/roleName');
-const interactionEvent = require('./events/info');
+
 const joinEvent = require('./events/guildMemberAdd');
 const newinfo = require('./events/nowinfo');
 const leaderboard = require('./events/showLevel');
 const rolemanage= require('./events/roleManage');
 const linkApproval = require('./events/linkApproval');
-const {
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle
-} = require('discord.js');
+const antiSpam = require('./events/antiSpam');
+
+
+client.on('interactionCreate', async interaction => {
+    console.log("LISTENER A");
+    if (!interaction.isChatInputCommand()) return;
+    
+
+    if (interaction.commandName === 'ping') {
+        return interaction.reply('🏓 Pong!');
+    }
+    if (interaction.commandName === 'rank') {
+
+    const fs = require('fs');
+
+    const data = JSON.parse(
+        fs.readFileSync('./events/data/user.json', 'utf8')
+    );
+
+    const userId = interaction.user.id;
+
+    const users = Object.entries(data);
+
+    users.sort((a, b) => b[1].xp - a[1].xp);
+
+    const rank = users.findIndex(
+        user => user[0] === userId
+    ) + 1;
+
+    const xp = data[userId]?.xp || 0;
+
+    const embed = new EmbedBuilder()
+        .setTitle('🏆 CHACHA RANK')
+        .setColor('#3498db')
+        .setThumbnail(interaction.user.displayAvatarURL())
+        .addFields(
+            { name: '👤 User', value: interaction.user.username, inline: true },
+            { name: '🥇 Rank', value: `#${rank}`, inline: true },
+            { name: '⭐ XP', value: `${xp}`, inline: true }
+        )
+        .setFooter({
+            text: 'Keep chatting to earn XP! 🚀'
+        });
+
+    return interaction.reply({
+        embeds: [embed]
+    });
+}
+    if (interaction.commandName === 'top') {
+
+    const fs = require('fs');
+
+    const data = JSON.parse(
+        fs.readFileSync('./events/data/user.json', 'utf8')
+    );
+
+    const users = Object.entries(data);
+
+    users.sort((a, b) => b[1].xp - a[1].xp);
+
+    let leaderboard = '';
+
+    for (let i = 0; i < Math.min(users.length, 10); i++) {
+
+        const user =
+            await client.users.fetch(users[i][0]);
+
+        const medal =
+            i === 0 ? '🥇' :
+            i === 1 ? '🥈' :
+            i === 2 ? '🥉' : '🏅';
+
+        leaderboard +=
+            `${medal} ${user.username} — ${users[i][1].xp} XP\n`;
+    }
+
+    const embed = new EmbedBuilder()
+        .setTitle('🏆 CHACHA LEADERBOARD')
+        .setColor('#FFD700')
+        .setDescription(leaderboard);
+
+    return interaction.reply({
+        embeds: [embed]
+    });
+}
+    
+  if (interaction.commandName === 'info') {
+
+    const target =
+        interaction.options.getMember('user') ||
+        interaction.member;
+
+    const roles = target.roles.cache
+        .filter(role => role.name !== '@everyone')
+        .map(role => role.name)
+        .join(', ');
+
+    const embed = new EmbedBuilder()
+        .setTitle('👤 MEMBER INFO')
+        .setThumbnail(target.user.displayAvatarURL())
+        .addFields(
+            {
+                name: 'Username',
+                value: target.user.username
+            },
+            {
+                name: 'Roles',
+                value: roles || 'No Roles'
+            },
+            {
+                name: 'Joined Server',
+                value: target.joinedAt.toDateString()
+            }
+        )
+        .setColor('#3498db');
+
+    return interaction.reply({
+        embeds: [embed]
+    });
+}
+
+}); // CLOSES LISTENER A 
+
+    
+
+  
+
+
+client.on(antiSpam.name, (...args) => {
+    antiSpam.execute(...args);
+});
+
 
 client.on(linkApproval.name, (...args) => {
     linkApproval.execute(...args);
 });
+    
+
+
 client.on('interactionCreate', async interaction => {
 
     if (!interaction.isButton()) return;
 
-    if (
-        !interaction.member.roles.cache.has(CO_OWNER_ROLE_ID)
-    ) {
-        return interaction.reply({
-            content: 'Only Co-owner can do this.',
-            ephemeral: true
-        });
-    }
-
     const id = interaction.customId;
 
-    if (id.startsWith('approve_')) {
+    if (
+        id.startsWith('approve_') ||
+        id.startsWith('reject_') ||
+        id.startsWith('ch1_') ||
+        id.startsWith('ch2_') ||
+        id.startsWith('ch3_') ||
+        id.startsWith('ch4_')
+    ) {
+
+        if (!interaction.member.roles.cache.has(CO_OWNER_ROLE_ID)) {
+            return interaction.reply({
+                content: 'Only Co-owner can do this.',
+                ephemeral: true
+            });
+        }
+    }
+
+    // paste all your approve/reject/ch1/ch2/ch3/ch4 code here
+     if (id.startsWith('approve_')) {
 
         const parts = id.split('_');
-        const link = parts.slice(2).join('_');
-
+const link = parts.slice(2).join('_');
         const row = new ActionRowBuilder().addComponents(
 
             new ButtonBuilder()
@@ -84,7 +229,6 @@ client.on('interactionCreate', async interaction => {
     }
 
     if (id.startsWith('reject_')) {
-
         return interaction.update({
             content: '❌ Link Rejected',
             components: []
@@ -115,13 +259,9 @@ client.on('interactionCreate', async interaction => {
     }
 
     if (channelId) {
+        const channel = client.channels.cache.get(channelId);
 
-        const channel =
-            client.channels.cache.get(channelId);
-
-        await channel.send(
-            `🔗 Approved Link\n\n${link}`
-        );
+        await channel.send(`🔗 Approved Link\n\n${link}`);
 
         await interaction.update({
             content: '✅ Link Posted',
@@ -129,6 +269,17 @@ client.on('interactionCreate', async interaction => {
         });
     }
 });
+
+
+   
+    
+
+
+
+    
+   
+
+    
 const rankRoles = {
     lvl_1 : '1513721712401977404',
     lvl_2 : '1513721827795665048',
@@ -144,18 +295,15 @@ client.on('messageCreate', async message => {
 
     const uploadChannelId = '1513658297037750415';
 
-    if (message.channel.id === uploadChannelId) {
-
-        if (message.attachments.size === 0) {
-            await message.delete();
-            return;
-        }
-    }
+    
 
     if (message.content === '!ping') {
-        message.reply('Pong!');
+        return message.reply('Pong');
     }
 
+    if (message.mentions.has(client.user)) {
+        return message.reply(`Hello ${message.author.username}! 👋`);
+    }
 });
 client.on(rolemanage.name, (...args)=>{
     rolemanage.execute(...args);
@@ -163,20 +311,18 @@ client.on(rolemanage.name, (...args)=>{
 client.on(leaderboard.name, member => {
  leaderboard.execute(member);
 });
-client.on(newinfo.name, member => {
-  newinfo.execute(member);
-});
+
 client.on(joinEvent.name, member => {
     joinEvent.execute(member);
 });
 client.on(messageEvent.name, (...args) => {
     messageEvent.execute(...args);
 });
-
-client.on(interactionEvent.name, (...args) => {
-    interactionEvent.execute(...args);
+client.on(newinfo.name, member => {
+    newinfo.execute(member);
 });
-client.once('ready', () => {
+
+client.once('clientReady', () => {
     console.log(`Chacha is online!`);
 
  setInterval(async () => {
@@ -248,16 +394,7 @@ catch(err) {
 }, 60000);
 });
 
-client.on('messageCreate', message => {
 
-    if (message.author.bot) return;
 
-    if (message.content === '!ping') {
-        message.reply('Pong!');
-    }
-    if (message.mentions.has(client.user)) {
-    message.reply(`Hello ${message.author.username}! 👋`);
-}
-});
 
 client.login(process.env.TOKEN);
