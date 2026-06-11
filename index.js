@@ -32,7 +32,24 @@ const leaderboard = require('./events/showLevel');
 const rolemanage= require('./events/roleManage');
 const linkApproval = require('./events/linkApproval');
 const antiSpam = require('./events/antiSpam');
+client.on('messageCreate', async message => {
+    if (message.author.bot) return;
 
+    const uploadChannelId = '1513658297037750415';
+
+    if (message.channel.id === uploadChannelId) {
+
+        const hasAttachment = message.attachments.size > 0;
+
+        if (!hasAttachment) {
+            await message.delete();
+
+            return message.author.send(
+                '❌ Only file uploads are allowed in that channel.'
+            );
+        }
+    }
+});
 
 client.on('interactionCreate', async interaction => {
     console.log("LISTENER A");
@@ -383,7 +400,9 @@ console.log("TRYING:", member.user.username, roleToGive);
 try {
     console.log("TRYING:", member.user.username, roleToGive);
 
-await member.roles.add(roleToGive);
+if (!member.roles.cache.has(roleToGive)) {
+    await member.roles.add(roleToGive);
+}
 
 console.log("SUCCESS:", member.user.username);
 }
@@ -398,5 +417,4 @@ catch(err) {
 
 
 
-client.login(process.env.TOKEN);/ /   r e d e p l o y  
- 
+client.login(process.env.TOKEN);
