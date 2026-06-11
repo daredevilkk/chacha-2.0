@@ -18,6 +18,14 @@ const client = new Client({
     ]
     
 });
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Chacha Bot Online');
+});
+
+app.listen(process.env.PORT || 3000);
 const CO_OWNER_ROLE_ID = '1254480825487982774';
 
 const LINKS_CHANNEL_ID1 = '1513663478349697234';
